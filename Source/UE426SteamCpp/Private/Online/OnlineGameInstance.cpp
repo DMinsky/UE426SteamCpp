@@ -73,7 +73,7 @@ void UOnlineGameInstance::CreateServer()
 	FOnlineSessionSettings SessionSettings;
 	SessionSettings.bAllowJoinInProgress = true;
 	SessionSettings.bIsDedicated = false;
-	SessionSettings.bIsLANMatch = true;
+	SessionSettings.bIsLANMatch = false;
 	SessionSettings.bShouldAdvertise = true;
 	SessionSettings.bUsesPresence = true;
 	SessionSettings.NumPublicConnections = 8;
@@ -84,7 +84,7 @@ void UOnlineGameInstance::JoinServer()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Start Find Sessions"));
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
-	SessionSearch->bIsLanQuery = true;
+	SessionSearch->bIsLanQuery = false;
 	SessionSearch->MaxSearchResults = 10000;
 	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 	SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
