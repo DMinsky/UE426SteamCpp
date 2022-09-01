@@ -20,6 +20,8 @@ void UOnlineGameInstance::Init()
 			// Bind delegates here
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(
 				this, &UOnlineGameInstance::OnCreateSessionComplete);
+			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(
+				this, &UOnlineGameInstance::OnFindSessionComplete);
 		}
 	}
 }
@@ -30,6 +32,16 @@ void UOnlineGameInstance::OnCreateSessionComplete(FName ServerName, bool Succeed
 	if (Succeeded)
 	{
 		GetWorld()->ServerTravel("/Game/ThirdPersonCPP/Maps/ThirdPersonExampleMap?listen");
+	}
+}
+
+void UOnlineGameInstance::OnFindSessionComplete(bool Succeeded)
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnFindSessionComplete, Succeeded: %d"), Succeeded);
+	if (Succeeded)
+	{
+		TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults;
+		UE_LOG(LogTemp, Warning, TEXT("Search Results, Server Count: %d"), SearchResults.Num());
 	}
 }
 
@@ -48,4 +60,10 @@ void UOnlineGameInstance::CreateServer()
 
 void UOnlineGameInstance::JoinServer()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Start Find Sessions"));
+	SessionSearch = MakeShareable(new FOnlineSessionSearch());
+	SessionSearch->bIsLanQuery = true;
+	SessionSearch->MaxSearchResults = 10000;
+	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+	SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 }
