@@ -4,6 +4,7 @@
 #include "Online/OnlineGameInstance.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "Kismet/GameplayStatics.h"
 
 UOnlineGameInstance::UOnlineGameInstance()
 {
@@ -22,6 +23,8 @@ void UOnlineGameInstance::Init()
 				this, &UOnlineGameInstance::OnCreateSessionComplete);
 			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(
 				this, &UOnlineGameInstance::OnFindSessionComplete);
+			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(
+				this, &UOnlineGameInstance::OnJoinSessionComplete);
 		}
 	}
 }
@@ -42,6 +45,25 @@ void UOnlineGameInstance::OnFindSessionComplete(bool Succeeded)
 	{
 		TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults;
 		UE_LOG(LogTemp, Warning, TEXT("Search Results, Server Count: %d"), SearchResults.Num());
+		if (SearchResults.Num())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Joining Server"));
+			SessionInterface->JoinSession(0, "My Session", SearchResults[0]);
+		}
+	}
+}
+
+void UOnlineGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnJoinSessionComplete, Session Name: %s"), *SessionName.ToString());
+	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	{
+		FString JoinAddress = "";
+		SessionInterface->GetResolvedConnectString(SessionName, JoinAddress);
+		if (JoinAddress != "")
+		{
+			PlayerController->ClientTravel(JoinAddress, ETravelType::TRAVEL_Absolute);
+		}
 	}
 }
 
